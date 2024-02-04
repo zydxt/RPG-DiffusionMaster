@@ -1,12 +1,12 @@
-from enum import StrEnum, auto
+from enum import Enum
 
 
-class PromptVersion(StrEnum):
+class PromptVersion(Enum):
     MULTI_ATTRIBUTE = "multi-attribute"
     COMPLEX_OBJECT = "complex-object"
 
 
-class LLMType(StrEnum):
-    GEMINI_PRO = auto()
-    GPT4 = auto()
-    GPT4_AZURE = auto()
+class LLMType(Enum):
+    GEMINI_PRO = "gemini-pro"
+    GPT4 = "gpt4"
+    GPT4_AZURE = "GPT4-AZURE"
