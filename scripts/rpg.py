@@ -1,6 +1,6 @@
 from gradio.components.base import Component
-from scripts.llm import llm_factory
-from scripts.enums import PromptVersion, LLMType
+from scripts.llm_agents import llm_factory
+from scripts.rpg_enums import PromptVersion, LLMType
 from scripts.logs import change_debug
 import modules.scripts as scripts
 import gradio as gr
