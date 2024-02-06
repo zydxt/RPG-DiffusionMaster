@@ -1,7 +1,7 @@
 from gradio.components.base import Component
-from scripts.llm_agents import llm_factory
-from scripts.rpg_enums import PromptVersion, LLMType
-from scripts.logs import change_debug
+from rpg_lib.llm_agents import llm_factory
+from rpg_lib.rpg_enums import PromptVersion, LLMType
+from rpg_lib.logs import change_debug
 import modules.scripts as scripts
 import gradio as gr
 
