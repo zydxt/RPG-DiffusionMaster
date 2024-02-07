@@ -2,8 +2,8 @@ from typing import Tuple
 from pathlib import Path
 from modules import scripts
 from openai import AzureOpenAI, OpenAI
-from scripts.rpg_enums import LLMType, PromptVersion
-from scripts.logs import logger
+from rpg_lib.rpg_enums import LLMType, PromptVersion
+from rpg_lib.logs import logger
 import google.generativeai as genai
 import re
 
