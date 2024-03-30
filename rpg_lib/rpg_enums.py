@@ -10,3 +10,4 @@ class LLMType(Enum):
     GEMINI_PRO = "gemini-pro"
     GPT4 = "gpt4"
     GPT4_AZURE = "GPT4-AZURE"
+    Local = "Local-Model"

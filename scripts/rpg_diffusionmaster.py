@@ -62,7 +62,21 @@ class RPGDiffusionMasterScript(scripts.Script):
                     elem_id="RPG_DM_model",
                 )
                 api_key = gr.Textbox(
-                    label="API Key", lines=1, max_lines=1, elem_id="RPG_DM_api_key"
+                    label="API Key", lines=1, max_lines=1, elem_id="RPG_DM_api_key", visible=False,
+                )
+                model_path = gr.Textbox(
+                    label="Model Path", 
+                    lines=1, 
+                    max_lines=1, 
+                    visible=False,
+                    elem_id="RPG_Model",
+                )
+                gpu_layers = gr.Textbox(
+                    label="GPU Layers",
+                    lines=1,
+                    max_lines=1,
+                    visible=False,
+                    elem_id="RPG_GPU_layers",
                 )
 
                 azure_endpoint = gr.Textbox(
@@ -92,6 +106,25 @@ class RPGDiffusionMasterScript(scripts.Script):
 
         def select_model(model):
             enable_azure_config = model == LLMType.GPT4_AZURE.value
+            enable_local_model = model == LLMType.Local.value
+            
+            local_update = gr.Textbox.update(
+                visible=enable_local_model,
+                interactive=enable_local_model,
+                value="",
+            )
+
+            api_update = gr.Textbox.update(
+                visible=not enable_local_model,
+                interactive=not enable_local_model,
+                value="",
+            )
+
+            gpu_update = gr.Textbox.update(
+                visible=enable_local_model,
+                interactive=enable_local_model,
+                value="0",
+            )
 
             update = gr.Textbox.update(
                 visible=enable_azure_config,
@@ -100,6 +133,9 @@ class RPGDiffusionMasterScript(scripts.Script):
             )
 
             return {
+                gpu_layers: gpu_update,
+                model_path: local_update,
+                api_key: api_update,
                 azure_endpoint: update,
                 azure_api_version: update,
                 azure_deployment_name: update,
@@ -108,7 +144,7 @@ class RPGDiffusionMasterScript(scripts.Script):
         llm_model.change(
             fn=select_model,
             inputs=[llm_model],
-            outputs=[azure_endpoint, azure_api_version, azure_deployment_name],
+            outputs=[gpu_layers, model_path, api_key, azure_endpoint, azure_api_version, azure_deployment_name],
         )
 
         apply.click(
@@ -119,6 +155,8 @@ class RPGDiffusionMasterScript(scripts.Script):
                 base_prompt,
                 base_ratio,
                 llm_model,
+                gpu_layers,
+                model_path,
                 api_key,
                 azure_endpoint,
                 azure_api_version,
@@ -163,6 +201,8 @@ class RPGDiffusionMasterScript(scripts.Script):
         base_prompt: str,
         base_ratio: str,
         llm_model: str,
+        gpu_layers: str,
+        model_path: str,
         api_key: str,
         azure_endpoint: str,
         azure_api_version: str,
@@ -170,6 +210,8 @@ class RPGDiffusionMasterScript(scripts.Script):
     ):
         split_ratio, regional_prompt = llm_factory(
             LLMType(llm_model),
+            gpu_layers=gpu_layers,
+            model_path=model_path,
             api_key=api_key,
             azure_endpoint=azure_endpoint,
             azure_api_version=azure_api_version,
