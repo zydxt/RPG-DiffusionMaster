@@ -2,13 +2,10 @@ from typing import Tuple
 from pathlib import Path
 from modules import scripts
 from openai import AzureOpenAI, OpenAI
-from rpg_lib.rpg_enums import LLMType, PromptVersion, Quantization
+from rpg_lib.rpg_enums import LLMType, PromptVersion
 from rpg_lib.logs import logger
 import google.generativeai as genai
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
 import re
-import gc
 
 PROMPT_TEMPLATE_FOLDER = Path(scripts.basedir()) / "prompt_template"
 PROMPT_TEMPLATE_FILE = PROMPT_TEMPLATE_FOLDER / "template.txt"
@@ -18,7 +15,6 @@ MULTI_ATTRIBUTE_TEMPLATE_FILE = (
 COMPLEX_OBJECT_TEMPLATE_FILE = (
     PROMPT_TEMPLATE_FOLDER / "complex_multi_object_examples.txt"
 )
-LOCAL_LLM_MODELS_FOLDER = Path(scripts.basedir()) / "models"
 
 
 class LLMAgent:
@@ -140,57 +136,6 @@ class GeminiPro(LLMAgent):
         return self.client.generate_content(text_prompt).text
 
 
-class LocalLLM(LLMAgent):
-    def __init__(
-        self,
-        model_id=None,
-        model_folder=None,
-        quantization=None,
-    ) -> None:
-        super().__init__()
-        self.model_id = model_id
-        self.model_folder = model_folder
-        self.quantization_config = {
-            "load_in_4bit": quantization == Quantization.Q_4_BIT,
-            "load_in_8bit": quantization == Quantization.Q_8_BIT,
-        }
-
-    def _get_regional_content_from_llm(self, text_prompt) -> str:
-        model_id_or_folder = self.model_id or self.model_folder
-
-        model = AutoModelForCausalLM.from_pretrained(
-            model_id_or_folder,
-            device_map="auto",
-            trust_remote_code=True,
-            cache_dir=LOCAL_LLM_MODELS_FOLDER,
-            **self.quantization_config,
-        )
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_id_or_folder,
-            trust_remote_code=True,
-            cache_dir=LOCAL_LLM_MODELS_FOLDER,
-        )
-
-        inputs = tokenizer(
-            text_prompt, return_tensors="pt", return_attention_mask=False
-        )
-        outputs = model.generate(**inputs, max_length=1024)
-
-        result = tokenizer.batch_decode(outputs)[0]
-
-        try:
-            import torch
-
-            del tokenizer
-            del model
-            gc.collect()
-            torch.cuda.empty_cache()
-        except Exception:
-            self._log_text("LOCAL_LLM", "free up vram failed")
-
-        return result
-
-
 def llm_factory(
     llm_type,
     **kwargs,
@@ -208,12 +153,5 @@ def llm_factory(
 
     if llm_type == LLMType.GEMINI_PRO:
         return GeminiPro(kwargs["api_key"])
-
-    if llm_type == LLMType.LOCAL_LLM:
-        return LocalLLM(
-            model_id=kwargs["model_id"],
-            model_folder=kwargs["model_folder"],
-            quantization=kwargs["quantization"],
-        )
 
     return DummyAgent()

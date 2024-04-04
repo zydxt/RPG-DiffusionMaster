@@ -25,13 +25,10 @@ Prior to installing this extension, ensure that the [Regional Prompter](https://
 ![config](./__images__/config_exampe.png)_
 4. Press the "Apply to Prompt" button and wait briefly as the extension processes the prompt through the LLM and adjusts the Regional Prompter configurations accordingly. 
 5. Review the adjusted settings and the final prompt in the Prompt textbox. You can then modify parameters like image size, CFG Scale, Steps, etc., before generating your images. 
-
-## Note for Local LLMs
-Due to the lower version of the transformer in stable-diffusion-web-ui, unfortunately, some relatively newer models cannot function properly (e.g. Mistral-7b). Furthermore, the related issues with these new models cannot be fixed until web-ui upgrades its dependencies.
   
 ## To-Do List 💪 
   
-- [X] Integrate local LLM support. 
+- [ ] Integrate local LLM support. 
   
 ## Differences from the Official Implementation 
   

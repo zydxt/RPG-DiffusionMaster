@@ -1,7 +1,6 @@
 from gradio.components.base import Component
-from gradio.themes import default
 from rpg_lib.llm_agents import llm_factory
-from rpg_lib.rpg_enums import PromptVersion, LLMType, Quantization
+from rpg_lib.rpg_enums import PromptVersion, LLMType
 from rpg_lib.logs import change_debug
 import modules.scripts as scripts
 import gradio as gr
@@ -88,28 +87,6 @@ class RPGDiffusionMasterScript(scripts.Script):
                     elem_id="RPG_DM_azure_deployment_name",
                 )
 
-                local_model_id = gr.Textbox(
-                    label="Local llm model_id on hugging face, eg: tiiuae/falcon-7b ; required if model folder absolute path below is empty",
-                    lines=1,
-                    placeholder="tiiuae/falcon-7b",
-                    visible=False,
-                    elem_id="RPG_DM_local_model_id",
-                )
-                local_model_folder = gr.Textbox(
-                    label="Local llm model folder absolute path, required if above model_id is empty",
-                    lines=1,
-                    placeholder="/home/usetname/llm_models/falcon-7b",
-                    visible=False,
-                    elem_id="RPG_DM_local_model_folder",
-                )
-                quantization = gr.Dropdown(
-                    label="Quantization",
-                    value=Quantization.NON_Q.value,
-                    choices=[m.value for m in Quantization],
-                    elem_id="RPG_DM_quantization",
-                    visible=False,
-                )
-
             debug = gr.Checkbox(label="Debug", elem_id="RPG_DM_debug")
             apply = gr.Button("Apply to Prompt", elem_id="RPG_DM_apply")
 
@@ -122,40 +99,16 @@ class RPGDiffusionMasterScript(scripts.Script):
                 value="",
             )
 
-            is_local_llm = model == LLMType.LOCAL_LLM.value
-
             return {
                 azure_endpoint: update,
                 azure_api_version: update,
                 azure_deployment_name: update,
-                api_key: gr.Textbox.update(
-                    visible=not is_local_llm, interactive=not is_local_llm, value=""
-                ),
-                local_model_id: gr.Textbox.update(
-                    visible=is_local_llm, interactive=is_local_llm, value=""
-                ),
-                local_model_folder: gr.Textbox.update(
-                    visible=is_local_llm, interactive=is_local_llm, value=""
-                ),
-                quantization: gr.Dropdown.update(
-                    visible=is_local_llm,
-                    interactive=is_local_llm,
-                    value=Quantization.NON_Q.value,
-                ),
             }
 
         llm_model.change(
             fn=select_model,
             inputs=[llm_model],
-            outputs=[
-                azure_endpoint,
-                azure_api_version,
-                azure_deployment_name,
-                api_key,
-                local_model_id,
-                local_model_folder,
-                quantization,
-            ],
+            outputs=[azure_endpoint, azure_api_version, azure_deployment_name],
         )
 
         apply.click(
@@ -170,9 +123,6 @@ class RPGDiffusionMasterScript(scripts.Script):
                 azure_endpoint,
                 azure_api_version,
                 azure_deployment_name,
-                local_model_id,
-                local_model_folder,
-                quantization,
             ],
             outputs=[
                 c
@@ -217,9 +167,6 @@ class RPGDiffusionMasterScript(scripts.Script):
         azure_endpoint: str,
         azure_api_version: str,
         azure_deployment_name: str,
-        model_id: str,
-        model_folder: str,
-        quantization: str,
     ):
         split_ratio, regional_prompt = llm_factory(
             LLMType(llm_model),
@@ -227,9 +174,6 @@ class RPGDiffusionMasterScript(scripts.Script):
             azure_endpoint=azure_endpoint,
             azure_api_version=azure_api_version,
             azure_deployment_name=azure_deployment_name,
-            model_id=model_id,
-            model_folder=model_folder,
-            quantization=Quantization(quantization),
         ).get_regional_parameter(user_prompt, PromptVersion(prompt_version))
 
         if _base := (base_prompt or base_prompt.strip()):
