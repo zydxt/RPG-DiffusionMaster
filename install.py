@@ -10,4 +10,4 @@ if not launch.is_installed("llama-cpp-python"):
     if torch.cuda.is_available:
         os.environ["CMAKE_ARGS"] = "-DLLAMA_CUBLAS=on"
         print("Installing llama-cpp with cuda")
-    launch.run_pip("install llama-cpp-python --no-cache-dir")
+    launch.run_pip("install llama-cpp-python==0.2.56", "requirements RPG-DiffusionMaster")
