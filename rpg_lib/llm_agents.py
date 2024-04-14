@@ -6,6 +6,7 @@ from rpg_lib.rpg_enums import LLMType, PromptVersion
 from rpg_lib.logs import logger
 import google.generativeai as genai
 import re
+from llama_cpp import Llama
 
 PROMPT_TEMPLATE_FOLDER = Path(scripts.basedir()) / "prompt_template"
 PROMPT_TEMPLATE_FILE = PROMPT_TEMPLATE_FOLDER / "template.txt"
@@ -135,6 +136,21 @@ class GeminiPro(LLMAgent):
     def _get_regional_content_from_llm(self, text_prompt) -> str:
         return self.client.generate_content(text_prompt).text
 
+class LocalModel(LLMAgent):
+    def __init__(self, model_path, gpu_layers) -> None:
+        self.client = Llama(model_path=model_path,chat_format="chatml",n_ctx=4096,n_gpu_layers=int(gpu_layers))
+
+    def _get_regional_content_from_llm(self, text_prompt) -> str:
+        response = self.client.create_chat_completion_openai_v1(
+            messages=[
+                {
+                    "role": "user",
+                    "content": text_prompt,
+                },
+            ],
+        )
+        del self.client
+        return response.choices[0].message.content or ""
 
 def llm_factory(
     llm_type,
@@ -153,5 +169,8 @@ def llm_factory(
 
     if llm_type == LLMType.GEMINI_PRO:
         return GeminiPro(kwargs["api_key"])
+
+    if llm_type == LLMType.Local:
+        return LocalModel(kwargs["model_path"],kwargs["gpu_layers"])
 
     return DummyAgent()

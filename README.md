@@ -1,4 +1,4 @@
-# RPG-DiffusionMaster Extension for Stable Diffusion WebUI  
+# RPG-DiffusionMaster Extension for Stable Diffusion WebUI
   
 This repository hosts an extension for [Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) that integrates the functionalities of [RPG-DiffusionMaster](https://github.com/YangLing0818/RPG-DiffusionMaster). It brings additional changes and enhancements, enabling users of WebUI to interact with RPG-DiffusionMaster more seamlessly.
   
@@ -28,12 +28,11 @@ Prior to installing this extension, ensure that the [Regional Prompter](https://
   
 ## To-Do List 💪 
   
-- [ ] Integrate local LLM support. 
+- [x] Integrate local LLM support. 
   
 ## Differences from the Official Implementation 
   
-- Adds support for the OpenAI Azure GPT4 Model and Gemini Pro. 
-- Local LLM support is pending. 
+- Adds support for the OpenAI Azure GPT4 Model and Gemini Pro.  
 - Alters the logic to enhance stability when extracting regional prompts. 
   
 ## Acknowledgements 
