@@ -4,6 +4,7 @@ from modules import scripts
 from openai import AzureOpenAI, OpenAI
 from rpg_lib.rpg_enums import LLMType, PromptVersion
 from rpg_lib.logs import logger
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.generativeai as genai
 import re
 from llama_cpp import Llama
@@ -134,7 +135,22 @@ class GeminiPro(LLMAgent):
         self.client = genai.GenerativeModel(model_name="gemini-pro")
 
     def _get_regional_content_from_llm(self, text_prompt) -> str:
-        return self.client.generate_content(text_prompt).text
+        return self.client.generate_content(
+            text_prompt,
+            safety_settings={
+                HarmCategory.HARM_CATEGORY_UNSPECIFIED: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_DEROGATORY: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_TOXICITY: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_VIOLENCE: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUAL: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_MEDICAL: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_DANGEROUS: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+            },
+        ).text
 
 class LocalModel(LLMAgent):
     def __init__(self, model_path, gpu_layers) -> None:
