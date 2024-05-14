@@ -239,23 +239,23 @@ class RPGDiffusionMasterScript(scripts.Script):
 
     def after_component(self, component: Component, **kwargs):
         if elem_id := kwargs.get("elem_id"):
-            if elem_id == "RP_main":
+            if elem_id in ("RP_main", "RP_maint2i"):
                 self.rp_main = component
-            elif elem_id == "RP_active":
+            elif elem_id in ("RP_active", "RP_activet2i"):
                 self.rp_activate = component
-            elif elem_id == "RP_mode":
+            elif elem_id in ("RP_mode", "RP_modet2i"):
                 self.rp_mode_tab = component
-            elif elem_id == "RP_main_splitting":
+            elif elem_id in ("RP_main_splitting", "RP_main_splittingt2i"):
                 self.rp_main_splitting = component
-            elif elem_id == "RP_generation_mode":
+            elif elem_id in ("RP_generation_mode", "RP_generation_modet2i"):
                 self.rp_generation_mode = component
-            elif elem_id == "RP_divide_ratio":
+            elif elem_id in ("RP_divide_ratio", "RP_divide_ratiot2i"):
                 self.rp_divide_ratio = component
-            elif elem_id == "RP_base_ratio":
+            elif elem_id in ("RP_base_ratio", "RP_base_ratiot2i"):
                 self.rp_base_ratio = component
-            elif elem_id == "RP_usebase":
+            elif elem_id in ("RP_usebase", "RP_usebaset2i"):
                 self.rp_usebase = component
-            elif elem_id == "RP_base_ratio":
+            elif elem_id in ("RP_base_ratio", "RP_base_ratiot2i"):
                 self.rp_base_ratio = component
-            elif elem_id == "txt2img_prompt":
+            elif elem_id in ("txt2img_prompt", "txt2img_promptt2i"):
                 self.txt2img_prompt = component
