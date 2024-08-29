@@ -1,3 +1,6 @@
+## Note:
+This extension is Not Being Actively Developed due to a shift in my personal focus and interests. Besides, there was no feature change in the original RPG-DiffusionMaster project recently. 
+
 # RPG-DiffusionMaster Extension for Stable Diffusion WebUI
   
 This repository hosts an extension for [Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) that integrates the functionalities of [RPG-DiffusionMaster](https://github.com/YangLing0818/RPG-DiffusionMaster). It brings additional changes and enhancements, enabling users of WebUI to interact with RPG-DiffusionMaster more seamlessly.
