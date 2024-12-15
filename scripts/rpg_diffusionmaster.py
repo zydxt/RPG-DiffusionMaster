@@ -1,5 +1,5 @@
 from gradio.components.base import Component
-from rpg_lib.llm_agents import llm_factory
+from rpg_lib.llm_agents import llm_factory, OpenRouterAgent
 from rpg_lib.rpg_enums import PromptVersion, LLMType
 from rpg_lib.logs import change_debug
 import modules.scripts as scripts
@@ -62,12 +62,16 @@ class RPGDiffusionMasterScript(scripts.Script):
                     elem_id="RPG_DM_model",
                 )
                 api_key = gr.Textbox(
-                    label="API Key", lines=1, max_lines=1, elem_id="RPG_DM_api_key", visible=False,
+                    label="API Key",
+                    lines=1,
+                    max_lines=1,
+                    elem_id="RPG_DM_api_key",
+                    visible=False,
                 )
                 model_path = gr.Textbox(
-                    label="Model Path", 
-                    lines=1, 
-                    max_lines=1, 
+                    label="Model Path",
+                    lines=1,
+                    max_lines=1,
                     visible=False,
                     elem_id="RPG_Model",
                 )
@@ -78,7 +82,12 @@ class RPGDiffusionMasterScript(scripts.Script):
                     visible=False,
                     elem_id="RPG_GPU_layers",
                 )
-
+                openrouter_model = gr.Dropdown(
+                    label="OpenRouter Model",
+                    choices=[],
+                    visible=False,
+                    elem_id="RPG_DM_openrouter_model",
+                )
                 azure_endpoint = gr.Textbox(
                     label="Azure endpoint",
                     lines=1,
@@ -104,10 +113,23 @@ class RPGDiffusionMasterScript(scripts.Script):
             debug = gr.Checkbox(label="Debug", elem_id="RPG_DM_debug")
             apply = gr.Button("Apply to Prompt", elem_id="RPG_DM_apply")
 
+        def update_openrouter_models(api_key):
+            """Fetch available models when API key is provided"""
+            if not api_key:
+                return gr.Dropdown.update(choices=[])
+            try:
+                models = OpenRouterAgent.get_available_models(api_key)
+                return gr.Dropdown.update(
+                    choices=models, value=models[0] if models else None
+                )
+            except Exception as e:
+                return gr.Dropdown.update(choices=[], value=None)
+
         def select_model(model):
             enable_azure_config = model == LLMType.GPT4_AZURE.value
             enable_local_model = model == LLMType.Local.value
-            
+            enable_openrouter = model == LLMType.OPENROUTER.value
+
             local_update = gr.Textbox.update(
                 visible=enable_local_model,
                 interactive=enable_local_model,
@@ -126,25 +148,48 @@ class RPGDiffusionMasterScript(scripts.Script):
                 value="0",
             )
 
-            update = gr.Textbox.update(
+            azure_update = gr.Textbox.update(
                 visible=enable_azure_config,
                 interactive=enable_azure_config,
                 value="",
+            )
+
+            openrouter_update = gr.Dropdown.update(
+                visible=enable_openrouter,
+                interactive=enable_openrouter,
+                value=None,
             )
 
             return {
                 gpu_layers: gpu_update,
                 model_path: local_update,
                 api_key: api_update,
-                azure_endpoint: update,
-                azure_api_version: update,
-                azure_deployment_name: update,
+                azure_endpoint: azure_update,
+                azure_api_version: azure_update,
+                azure_deployment_name: azure_update,
+                openrouter_model: openrouter_update,
             }
 
         llm_model.change(
             fn=select_model,
             inputs=[llm_model],
-            outputs=[gpu_layers, model_path, api_key, azure_endpoint, azure_api_version, azure_deployment_name],
+            outputs=[
+                gpu_layers,
+                model_path,
+                api_key,
+                azure_endpoint,
+                azure_api_version,
+                azure_deployment_name,
+                openrouter_model,
+            ],
+        )
+
+        # Update OpenRouter models when API key changes
+        api_key.change(
+            fn=update_openrouter_models,
+            inputs=[api_key],
+            outputs=[openrouter_model],
+            show_progress=False,
         )
 
         apply.click(
@@ -161,6 +206,7 @@ class RPGDiffusionMasterScript(scripts.Script):
                 azure_endpoint,
                 azure_api_version,
                 azure_deployment_name,
+                openrouter_model,
             ],
             outputs=[
                 c
@@ -207,6 +253,7 @@ class RPGDiffusionMasterScript(scripts.Script):
         azure_endpoint: str,
         azure_api_version: str,
         azure_deployment_name: str,
+        openrouter_model: str,
     ):
         split_ratio, regional_prompt = llm_factory(
             LLMType(llm_model),
@@ -216,6 +263,7 @@ class RPGDiffusionMasterScript(scripts.Script):
             azure_endpoint=azure_endpoint,
             azure_api_version=azure_api_version,
             azure_deployment_name=azure_deployment_name,
+            model_name=openrouter_model,
         ).get_regional_parameter(user_prompt, PromptVersion(prompt_version))
 
         if _base := (base_prompt or base_prompt.strip()):
