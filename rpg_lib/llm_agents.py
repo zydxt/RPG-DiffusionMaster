@@ -8,6 +8,7 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.generativeai as genai
 import re
 from llama_cpp import Llama
+from .openrouter_api import OpenRouterAPI
 
 PROMPT_TEMPLATE_FOLDER = Path(scripts.basedir()) / "prompt_template"
 PROMPT_TEMPLATE_FILE = PROMPT_TEMPLATE_FOLDER / "template.txt"
@@ -152,9 +153,15 @@ class GeminiPro(LLMAgent):
             },
         ).text
 
+
 class LocalModel(LLMAgent):
     def __init__(self, model_path, gpu_layers) -> None:
-        self.client = Llama(model_path=model_path,chat_format="chatml",n_ctx=4096,n_gpu_layers=int(gpu_layers))
+        self.client = Llama(
+            model_path=model_path,
+            chat_format="chatml",
+            n_ctx=4096,
+            n_gpu_layers=int(gpu_layers),
+        )
 
     def _get_regional_content_from_llm(self, text_prompt) -> str:
         response = self.client.create_chat_completion_openai_v1(
@@ -167,6 +174,24 @@ class LocalModel(LLMAgent):
         )
         del self.client
         return response.choices[0].message.content or ""
+
+
+class OpenRouterAgent(LLMAgent):
+    def __init__(self, api_key: str, model_name: str) -> None:
+        self.client = OpenRouterAPI(api_key)
+        self.model_name = model_name
+
+    def _get_regional_content_from_llm(self, text_prompt) -> str:
+        return self.client.chat_completion(
+            model=self.model_name, messages=[{"role": "user", "content": text_prompt}]
+        )
+
+    @staticmethod
+    def get_available_models(api_key: str) -> list[str]:
+        """Get list of available models from OpenRouter"""
+        client = OpenRouterAPI(api_key)
+        return client.get_available_models()
+
 
 def llm_factory(
     llm_type,
@@ -187,6 +212,9 @@ def llm_factory(
         return GeminiPro(kwargs["api_key"])
 
     if llm_type == LLMType.Local:
-        return LocalModel(kwargs["model_path"],kwargs["gpu_layers"])
+        return LocalModel(kwargs["model_path"], kwargs["gpu_layers"])
+
+    if llm_type == LLMType.OPENROUTER:
+        return OpenRouterAgent(kwargs["api_key"], kwargs["model_name"])
 
     return DummyAgent()

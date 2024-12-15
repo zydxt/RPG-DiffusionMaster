@@ -11,3 +11,4 @@ class LLMType(Enum):
     GPT4 = "gpt4"
     GPT4_AZURE = "GPT4-AZURE"
     Local = "Local-Model"
+    OPENROUTER = "openrouter"
